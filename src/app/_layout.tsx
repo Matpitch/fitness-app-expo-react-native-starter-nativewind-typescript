@@ -1,40 +1,48 @@
-import "../global.css";
-import { Slot, Stack, Tabs } from "expo-router";
-import AntDesign from "@expo/vector-icons/AntDesign";
+// app/_layout.tsx
+import React, { useEffect, useState } from 'react';
+import { SplashScreen, Stack, useSegments, useRouter } from 'expo-router';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
 
-export default function Layout() {
+import "../global.css";
+
+SplashScreen.preventAutoHideAsync();
+
+export default function RootLayout() {
+  const [user, setUser] = useState<any>(undefined);
+  const router = useRouter();
+  const segments = useSegments();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      SplashScreen.hideAsync();
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (user === undefined) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (user && inAuthGroup) {
+      router.replace("/(app)/index");
+    } else if (!user && !inAuthGroup) {
+      router.replace("/(auth)/welcome");
+    }
+  }, [user, segments]);
+
+  if (user === undefined) {
+    return null;
+  }
+
   return (
-    <Tabs>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="home" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="user" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: "History",
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="clockcircle" color={color} size={size} />
-          ),
-        }}
-      />
-    </Tabs>
+    <Stack>
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(app)" options={{ headerShown: false }} />
+      <Stack.Screen name="+not-found" />
+    </Stack>
   );
 }

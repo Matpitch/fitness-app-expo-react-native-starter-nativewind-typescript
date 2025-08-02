@@ -8,13 +8,10 @@
     },
     "plugins": [
       [
-        "expo-router",
-        {
-          "origin": "https://n"
-        }
+        "expo-router"
       ]
     ],
-    "name": "fit-app",
-    "slug": "fit-app"
+    "name": "safepawsapp",
+    "slug": "safepawsapp"
   }
 }
